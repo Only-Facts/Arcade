@@ -6,6 +6,7 @@
 */
 
 #include "Core.hpp"
+#include "Errors.hpp"
 #include <cstdlib>
 #include <exception>
 #include <iostream>
@@ -38,7 +39,8 @@ int main(int argc, const char *argv[]) {
       try {
         Arcade::Core core(argv[1]);
         core.run();
-      } catch (const std::exception &error) {
+        return EXIT_SUCCESS;
+      } catch (const ARCError &error) {
           std::cerr << "Error" << error.what() << '\n';
           return EXIT_FAILURE;
       }

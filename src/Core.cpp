@@ -5,24 +5,15 @@
 ** core
 */
 
-#include <cstddef>
 #include <memory>
-#include <algorithm>
-#include <chrono>
-#include <filesystem>
 #include <iostream>
 #include <dlfcn.h>
 #include "Core.hpp"
-#include "Errors.hpp"
+#include "DLLoader.hpp"
+#include "IGame.hpp"
 
 namespace Arcade {
-  Core::Core(const std::string& graphicalPath)
-  : _graphicalPath(graphicalPath),
-    _graphicHandle(nullptr),
-    _graphics(nullptr),
-    _destroyGraphics(nullptr)
-  {}
-
+  /*
   Core::~Core(){
     unloadGraphics();
   }
@@ -53,7 +44,7 @@ namespace Arcade {
 
     // Error Handling for wrong lib
     if (getType() != PluginType::Graphics)
-    throw ARCError("'" + path + "' is not a graphical library");
+      throw ARCError("'" + path + "' is not a graphical library");
 
     // create _graphics object for core use
     _graphics = static_cast<IGraphics*>(create());
@@ -73,14 +64,18 @@ namespace Arcade {
       _graphicHandle = nullptr;
     }
   }
+  */
 
   void Core::run() {
-    loadGraphics(_graphicalPath);
-    _graphics->init();
+    DLLoader<IGraphics> graphLoader(_graphicalPath);
+    std::unique_ptr<IGraphics> graphLib = graphLoader.getInstance("entryPoint");
 
     //temporary
     std::cout << "Graphics library loaded successfully\n";
 
-    _graphics->shutdown();
+    std::string game = "snake"; // todo
+    DLLoader<IGame> gameLoader("./lib/Core" + game + ".so");
+
+    // todo
   }
 } 

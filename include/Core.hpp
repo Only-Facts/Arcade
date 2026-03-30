@@ -16,21 +16,19 @@
 
 namespace Arcade {
 class Core {
-public:
-  explicit Core(const std::string &initalGraphicPath);
-  ~Core();
-  void run();
-
-private:
-  void loadGraphics(const std::string& path);
-  void unloadGraphics();
-
 private:
   std::string _graphicalPath;
   void* _graphicHandle;
   IGraphics* _graphics;
   DestroyFn _destroyGraphics;
 
+public:
+  explicit Core(const std::string &initalGraphicPath) : _graphicalPath(initalGraphicPath),
+    _graphicHandle(nullptr),
+    _graphics(nullptr),
+    _destroyGraphics(nullptr) {};
+  ~Core() = default;
+  void run();
 };
 }
 

@@ -27,6 +27,6 @@ public:
   };
 };
 
-extern "C" Arcade::IGraphics* createGame() {
+extern "C" Arcade::IGraphics* createGraphics() {
   return new NcursesModule();
 }

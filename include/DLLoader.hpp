@@ -41,9 +41,7 @@ public:
   }
 
   bool hasSymbol(const std::string& symbolName) const {
-    dlerror();
-    bool _ = dlsym(_handle, symbolName.c_str());
-    return dlerror() == nullptr;
+    return dlsym(_handle, symbolName.c_str()) != nullptr;
   }
 
   std::unique_ptr<T> getInstance(const std::string& entryPointName = "entryPoint") {

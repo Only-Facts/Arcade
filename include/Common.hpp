@@ -18,6 +18,7 @@ namespace Arcade {
   };
 
   enum class InputAction {
+    Exit,
     None,
     Quit,
     NextGraphics,
@@ -65,9 +66,10 @@ namespace Arcade {
   };
 
   struct Cell {
-    Vec2i pos;
-    CellType type;
-    std::string text;
+    float x;
+    float y;
+    char character;
+    int color;
   };
 
   struct Drawable {

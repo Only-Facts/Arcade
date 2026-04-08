@@ -2,6 +2,7 @@
 
 #include <chrono>
 #include <deque>
+#include <random>
 #include <string>
 #include <vector>
 
@@ -21,6 +22,7 @@ enum class Direction {
 class SnakeModule : public Arcade::IGame {
 public:
     SnakeModule()
+        : _rng(std::random_device{}())
     {
         reset();
     }
@@ -40,6 +42,7 @@ public:
         _direction = Direction::Right;
         _pendingDirection = Direction::Right;
         _lastStep = std::chrono::steady_clock::now();
+        spawnFood();
     }
 
     void update() override
@@ -94,6 +97,8 @@ public:
             cells.push_back(makeCell(kBoardWidth - 1, kTopOffset + y, '#', 5));
         }
 
+        cells.push_back(makeCell(_food.x, kTopOffset + _food.y, '*', 4));
+
         for (std::size_t i = 0; i < _snake.size(); ++i) {
             const GridPos &part = _snake[i];
             cells.push_back(makeCell(part.x, kTopOffset + part.y, i == 0 ? '@' : 'o', i == 0 ? 2 : 3));
@@ -119,10 +124,12 @@ private:
     static constexpr auto kStepDelay = std::chrono::milliseconds(140);
 
     std::deque<GridPos> _snake;
+    GridPos _food{};
     int _score{0};
     Direction _direction{Direction::Right};
     Direction _pendingDirection{Direction::Right};
     std::chrono::steady_clock::time_point _lastStep{};
+    mutable std::mt19937 _rng;
 
     static Arcade::Cell makeCell(int x, int y, char character, int color)
     {
@@ -134,6 +141,29 @@ private:
         for (std::size_t i = 0; i < text.size(); ++i) {
             cells.push_back(makeCell(x + static_cast<int>(i), y, text[i], color));
         }
+    }
+
+    bool isOnSnake(const GridPos &pos) const
+    {
+        for (const GridPos &part : _snake) {
+            if (part.x == pos.x && part.y == pos.y) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    void spawnFood()
+    {
+        std::uniform_int_distribution<int> distX(1, kBoardWidth - 2);
+        std::uniform_int_distribution<int> distY(1, kBoardHeight - 2);
+
+        GridPos candidate{};
+        do {
+            candidate = {distX(_rng), distY(_rng)};
+        } while (isOnSnake(candidate));
+
+        _food = candidate;
     }
 
     void advance()
@@ -173,10 +203,15 @@ private:
             next.y = maxY;
 
         _snake.push_front(next);
-        _snake.pop_back();
+        if (next.x == _food.x && next.y == _food.y) {
+            _score += 10;
+            spawnFood();
+        } else {
+            _snake.pop_back();
+        }
     }
 };
-} // namespace
+}
 
 extern "C" Arcade::IGame *createGame()
 {

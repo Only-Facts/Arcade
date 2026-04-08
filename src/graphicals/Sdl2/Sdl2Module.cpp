@@ -1,14 +1,17 @@
-#include "../../../include/IGraphic.hpp"
+#include "IGraphic.hpp"
+
 #ifdef __APPLE__
-#include <SDL.h>
-#include <SDL_ttf.h>
+  #include <SDL.h>
+  #include <SDL_ttf.h>
+  #define FONT "/System/Library/Fonts/Monaco.ttf"
 #else
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_ttf.h>
+  #include <SDL2/SDL.h>
+  #include <SDL2/SDL_ttf.h>
+  #define FONT "/usr/share/fonts/TTF/JetBrainsMonoNerdFontMono-Medium.ttf"
 #endif
+
 #include <map>
 #include <iostream>
-#include <memory>
 
 class SDL2Module : public Arcade::IGraphics {
 private:
@@ -32,7 +35,6 @@ private:
         _keyMapping[Arcade::InputAction::NextGame] = SDLK_n;
         _keyMapping[Arcade::InputAction::PrevGame] = 110;
         _keyMapping[Arcade::InputAction::Action] = SDLK_RETURN;
-        _keyMapping[Arcade::InputAction::Action] = SDLK_SPACE;
     }
 
     Arcade::InputAction convertKeyToAction(SDL_Keycode key) {
@@ -70,7 +72,7 @@ public:
             SDL_WINDOWPOS_CENTERED,
             SDL_WINDOWPOS_CENTERED,
             800, 600,
-            SDL_WINDOW_SHOWN
+            SDL_WINDOW_MAXIMIZED
         );
 
         if (!_window) {
@@ -89,7 +91,7 @@ public:
             return;
         }
 
-        _font = TTF_OpenFont("/System/Library/Fonts/Monaco.ttf", 20);
+        _font = TTF_OpenFont(FONT, 20);
         if (!_font) {
             std::cerr << "Warning: Could not load font: " << TTF_GetError() << std::endl;
         }
@@ -119,15 +121,11 @@ public:
             int y = static_cast<int>(cell.y) * _cellSize;
 
             SDL_Rect rect = {x, y, _cellSize, _cellSize};
-            
+
             Uint8 r = 0, g = 0, b = 0;
-            if (cell.character == '#') { r = 80; g = 80; b = 80; }
-            else if (cell.character == '@') { r = 100; g = 0; b = 0; }
-            else if (cell.character == 'o') { r = 0; g = 100; b = 0; }
-            else if (cell.character == 'x') { r = 100; g = 100; b = 0; }
-            else if (cell.character == '-' || cell.character == '>') { r = 0; g = 0; b = 100; }
+            if (cell.character == '-' || cell.character == '>') { r = 0; g = 0; b = 100; }
             else { r = 20; g = 20; b = 20; }
-            
+
             SDL_SetRenderDrawColor(_renderer, r, g, b, 255);
             SDL_RenderFillRect(_renderer, &rect);
 
@@ -137,7 +135,7 @@ public:
             if (_font && cell.character != ' ') {
                 char text[2] = {cell.character, '\0'};
                 SDL_Color textColor = {255, 255, 255, 255};
-                
+
                 SDL_Surface* surface = TTF_RenderText_Blended(_font, text, textColor);
                 if (surface) {
                     SDL_Texture* texture = SDL_CreateTextureFromSurface(_renderer, surface);

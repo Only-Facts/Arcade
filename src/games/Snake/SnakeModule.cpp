@@ -29,8 +29,7 @@ public:
 
     ~SnakeModule() override = default;
 
-    void reset() override
-    {
+    void reset() override {
         _snake.clear();
         const int midX = kBoardWidth / 2;
         const int midY = kBoardHeight / 2;
@@ -46,22 +45,18 @@ public:
         spawnFood();
     }
 
-    void update() override
-    {
-        if (_gameOver) {
+    void update() override {
+        if (_gameOver)
             return;
-        }
         const auto now = std::chrono::steady_clock::now();
-        if (now - _lastStep < kStepDelay) {
+        if (now - _lastStep < kStepDelay)
             return;
-        }
         _lastStep = now;
         _direction = _pendingDirection;
         advance();
     }
 
-    void onInput(Arcade::InputAction action) override
-    {
+    void onInput(Arcade::InputAction action) override {
         switch (action) {
             case Arcade::InputAction::Up:
                 if (_direction != Direction::Down)
@@ -90,7 +85,8 @@ public:
 
         appendText(cells, 0, 0, "Snake", 4);
         appendText(cells, 0, 1, "Score: " + std::to_string(_score), 3);
-        appendText(cells, 0, 2, _gameOver ? "Game Over - press R to restart" : "Eat food and avoid collisions", 7);
+        appendText(cells, 0, 2, "Length: " + std::to_string(_snake.size()), 6);
+        appendText(cells, 0, 3, _gameOver ? "Game Over - press R to restart" : "Arrows: move | R: restart | M: menu", 7);
 
         for (int x = 0; x < kBoardWidth; ++x) {
             cells.push_back(makeCell(x, kTopOffset, '#', 5));
@@ -101,23 +97,31 @@ public:
             cells.push_back(makeCell(kBoardWidth - 1, kTopOffset + y, '#', 5));
         }
 
-        cells.push_back(makeCell(_food.x, kTopOffset + _food.y, '*', 4));
+        for (int y = 1; y < kBoardHeight - 1; ++y) {
+            for (int x = 1; x < kBoardWidth - 1; ++x) {
+                cells.push_back(makeCell(x, kTopOffset + y, '.', 1));
+            }
+        }
+
+        cells.push_back(makeCell(_food.x, kTopOffset + _food.y, '$', 4));
 
         for (std::size_t i = 0; i < _snake.size(); ++i) {
             const GridPos &part = _snake[i];
-            cells.push_back(makeCell(part.x, kTopOffset + part.y, i == 0 ? '@' : 'o', i == 0 ? 2 : 3));
+            cells.push_back(makeCell(part.x, kTopOffset + part.y, i == 0 ? 'O' : 'o', i == 0 ? 2 : 3));
+        }
+
+        if (_gameOver) {
+            appendText(cells, 6, kTopOffset + kBoardHeight / 2, "GAME OVER", 4);
         }
 
         return cells;
     }
 
-    int getScore() const override
-    {
+    int getScore() const override {
         return _score;
     }
 
-    std::string getName() const override
-    {
+    std::string getName() const override {
         return "Snake";
     }
 
@@ -136,30 +140,25 @@ private:
     std::chrono::steady_clock::time_point _lastStep{};
     mutable std::mt19937 _rng;
 
-    static Arcade::Cell makeCell(int x, int y, char character, int color)
-    {
+    static Arcade::Cell makeCell(int x, int y, char character, int color) {
         return Arcade::Cell{static_cast<float>(x), static_cast<float>(y), character, color};
     }
 
-    static void appendText(std::vector<Arcade::Cell> &cells, int x, int y, const std::string &text, int color)
-    {
+    static void appendText(std::vector<Arcade::Cell> &cells, int x, int y, const std::string &text, int color) {
         for (std::size_t i = 0; i < text.size(); ++i) {
             cells.push_back(makeCell(x + static_cast<int>(i), y, text[i], color));
         }
     }
 
-    bool isOnSnake(const GridPos &pos) const
-    {
+    bool isOnSnake(const GridPos &pos) const {
         for (const GridPos &part : _snake) {
-            if (part.x == pos.x && part.y == pos.y) {
+            if (part.x == pos.x && part.y == pos.y)
                 return true;
-            }
         }
         return false;
     }
 
-    void spawnFood()
-    {
+    void spawnFood() {
         std::uniform_int_distribution<int> distX(1, kBoardWidth - 2);
         std::uniform_int_distribution<int> distY(1, kBoardHeight - 2);
 
@@ -171,22 +170,17 @@ private:
         _food = candidate;
     }
 
-    bool isBodyCollision(const GridPos &pos) const
-    {
+    bool isBodyCollision(const GridPos &pos) const {
         for (const GridPos &part : _snake) {
-            if (part.x == pos.x && part.y == pos.y) {
+            if (part.x == pos.x && part.y == pos.y)
                 return true;
-            }
         }
         return false;
     }
 
-    void advance()
-    {
-        if (_snake.empty()) {
+    void advance() {
+        if (_snake.empty())
             return;
-        }
-
         GridPos next = _snake.front();
         switch (_direction) {
             case Direction::Up:

@@ -39,4 +39,4 @@ target_link_libraries(arcade_sdl2 PRIVATE SDL2 SDL2_ttf)
 #target_link_libraries(arcade_sfml sfml-graphics sfml-window sfml-system)
 
 add_arcade_library(arcade_snake "src/games/Snake/SnakeModule.cpp")
-#add_arcade_library(arcade_pacman "src/games/Pacman/PacmanModule.cpp")
+add_arcade_library(arcade_pacman "src/games/Pacman/PacmanModule.cpp")

@@ -21,7 +21,7 @@ public:
       if (entry.path().extension() == ".so") {
         std::string filepath = entry.path().string();
         try {
-          DLLoader<void> inspector(filepath);
+          DLLoader<int> inspector(filepath);
 
           if (inspector.hasSymbol("createGame")) {
             gameLibs.push_back(filepath);

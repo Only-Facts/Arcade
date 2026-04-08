@@ -33,8 +33,10 @@ Core::~Core() {
 
 void Core::loadGraphics(size_t index) {
   if (_graphicalLibs.empty() || index >= _graphicalLibs.size()) return;
-
-  if (_graph) _graph->shutdown();
+  if (_graph) {
+    _graph->shutdown();
+    _graph.reset();
+  }
 
   _graphLoader = std::make_unique<DLLoader<IGraphics>>(_graphicalLibs[index]);
   _graph = _graphLoader->getInstance("createGraphics");
@@ -43,6 +45,7 @@ void Core::loadGraphics(size_t index) {
 
 void Core::loadGame(size_t index) {
   if (_gameLibs.empty() || index >= _gameLibs.size()) return;
+  if (_game) _game.reset();
 
   _gameLoader = std::make_unique<DLLoader<IGame>>(_gameLibs[index]);
   _game = _gameLoader->getInstance("createGame");

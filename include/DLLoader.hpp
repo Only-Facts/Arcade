@@ -56,6 +56,8 @@ public:
     using EntryPointFunc = T* (*)();
     EntryPointFunc createFunc = reinterpret_cast<EntryPointFunc>(sym);
 
+    if (!createFunc)
+      throw ARCError(std::string("cannot find entryPointName: ") + entryPointName);
     return std::unique_ptr<T>(createFunc());
   }
 };

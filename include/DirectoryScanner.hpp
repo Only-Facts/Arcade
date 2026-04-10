@@ -4,34 +4,46 @@
 #include <vector>
 #include <string>
 #include <filesystem>
+#include <dlfcn.h>
 #include "Errors.hpp"
-#include "DLLoader.hpp"
 
 namespace Arcade {
 class DirectoryScanner {
 public:
+  static bool hasSymbol(const std::string& libPath, const std::string& symbolName) {
+    void* handle = dlopen(libPath.c_str(), RTLD_LAZY);
+    if (!handle) {
+      return false;
+    }
+    
+    void* sym = dlsym(handle, symbolName.c_str());
+    if (!sym) {
+      std::string macOSName = "_" + symbolName;
+      sym = dlsym(handle, macOSName.c_str());
+    }
+    
+    dlclose(handle);
+    return sym != nullptr;
+  }
+
   static void scan(const std::string& path, std::vector<std::string>& gameLibs, std::vector<std::string>& graphicLibs) {
     gameLibs.clear();
     graphicLibs.clear();
 
-    if (!std::filesystem::exists(path) || !std::filesystem::is_directory(path))
+    if (!std::filesystem::exists(path) || !std::filesystem::is_directory(path)) {
       return;
+    }
 
     for (const auto& entry : std::filesystem::directory_iterator(path)) {
-      if (entry.path().extension() == ".so") {
+      std::string extension = entry.path().extension().string();
+      
+      if (extension == ".so" || extension == ".dylib") {
         std::string filepath = entry.path().string();
-        try {
-          DLLoader<int> inspector(filepath);
-
-          if (inspector.hasSymbol("createGame")) {
-            gameLibs.push_back(filepath);
-          } else if (inspector.hasSymbol("createGraphics")) {
-            graphicLibs.push_back(filepath);
-          } else {
-            throw ARCError("Invalid symbol");
-          }
-        } catch (const ARCError& e) {
-          std::cerr << "Error loading " << filepath << ": " << e.what() << std::endl;
+        
+        if (hasSymbol(filepath, "createGraphics")) {
+          graphicLibs.push_back(filepath);
+        } else if (hasSymbol(filepath, "createGame")) {
+          gameLibs.push_back(filepath);
         }
       }
     }

@@ -4,7 +4,6 @@
 #include <fcntl.h>
 #include <cstdio>
 #include <cstdlib>
-#include <iostream>
 
 namespace Arcade {
 
@@ -23,7 +22,7 @@ MenuSelector::~MenuSelector() {
 }
 
 void MenuSelector::clearScreen() {
-  printf("\033[2J\033[H");
+  std::cout << "\033[2J\033[H";
 }
 
 int MenuSelector::getchNonBlock() {
@@ -36,22 +35,22 @@ int MenuSelector::getchNonBlock() {
 
 void MenuSelector::displayMenu(const std::vector<MenuOption>& options, int selectedIdx) {
   clearScreen();
-  
-  printf("\n");
-  printf("  ╔══════════════════════════════════════╗\n");
-  printf("  ║        ARCADE - MENU PRINCIPAL       ║\n");
-  printf("  ╠══════════════════════════════════════╣\n");
-  printf("  ║                                      ║\n");
-  printf("  ║  Choisissez une librairie graphique: ║\n");
-  printf("  ║                                      ║\n");
-  
+
+  std::cout << "\n";
+  std::cout << "  ╔══════════════════════════════════════╗\n";
+  std::cout << "  ║        ARCADE - MENU PRINCIPAL       ║\n";
+  std::cout << "  ╠══════════════════════════════════════╣\n";
+  std::cout << "  ║                                      ║\n";
+  std::cout << "  ║  Choisissez une librairie graphique: ║\n";
+  std::cout << "  ║                                      ║\n";
+
   for (size_t i = 0; i < options.size(); ++i) {
     if (static_cast<int>(i) == selectedIdx) {
-      printf("  ║  \033[7m");
+      std::cout << "  ║  \033[7m";
     } else {
-      printf("  ║  ");
+      std::cout << "  ║  ";
     }
-    
+
     std::string displayName = options[i].name;
     size_t lastSlash = displayName.find_last_of('/');
     if (lastSlash != std::string::npos) {
@@ -65,56 +64,56 @@ void MenuSelector::displayMenu(const std::vector<MenuOption>& options, int selec
     if (dotPos != std::string::npos) {
       displayName = displayName.substr(0, dotPos);
     }
-    
+
     printf("  ►  %-31s", displayName.c_str());
-    
+
     if (static_cast<int>(i) == selectedIdx) {
-      printf("\033[0m");
+      std::cout << "\033[0m";
     }
-    printf("  ║\n");
+    std::cout << "║\n";
   }
-  
-  printf("  ║                                      ║\n");
-  
+
+  std::cout << "  ║                                      ║\n";
+
   if (selectedIdx == static_cast<int>(options.size())) {
-    printf("  ║  \033[7m  ►  Quitter\033[0m                         ║\n");
+    std::cout << "  ║  \033[7m  ►  Quitter\033[0m                         ║\n";
   } else {
-    printf("  ║    ►  Quitter                         ║\n");
+    std::cout << "  ║    ►  Quitter                        ║\n";
   }
-  
-  printf("  ║                                      ║\n");
-  printf("  ╚══════════════════════════════════════╝\n");
-  printf("\n");
-  printf("  Utilisez les flèches ↑/↓ pour naviguer\n");
-  printf("  Appuyez sur Entrée pour sélectionner\n");
-  printf("  Appuyez sur 'q' pour quitter\n");
-  
+
+  std::cout << "  ║                                      ║\n";
+  std::cout << "  ╚══════════════════════════════════════╝\n";
+  std::cout << "\n";
+  std::cout << "  Utilisez les flèches ↑/↓ pour naviguer\n";
+  std::cout << "  Appuyez sur Entrée pour sélectionner\n";
+  std::cout << "  Appuyez sur 'q' pour quitter\n";
+
   fflush(stdout);
 }
 
 std::string MenuSelector::run(const std::vector<std::string>& availableLibs) {
   std::vector<MenuOption> options;
-  
+
   for (const auto& lib : availableLibs) {
     MenuOption opt;
     opt.name = lib;
     opt.path = lib;
     options.push_back(opt);
   }
-  
+
   _selectedIdx = 0;
   _running = true;
-  
+
   displayMenu(options, _selectedIdx);
-  
+
   while (_running) {
     int ch = getchNonBlock();
-    
+
     if (ch == EOF) {
       usleep(10000);
       continue;
     }
-    
+
     switch (ch) {
       case 27:
         ch = getchNonBlock();
@@ -136,7 +135,7 @@ std::string MenuSelector::run(const std::vector<std::string>& availableLibs) {
           }
         }
         break;
-        
+
       case '\n':
       case '\r':
         if (_selectedIdx == static_cast<int>(options.size())) {
@@ -145,16 +144,16 @@ std::string MenuSelector::run(const std::vector<std::string>& availableLibs) {
           return options[_selectedIdx].path;
         }
         break;
-        
+
       case 'q':
       case 'Q':
         return "";
         break;
     }
-    
+
     usleep(10000);
   }
-  
+
   return "";
 }
 

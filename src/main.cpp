@@ -27,47 +27,43 @@ static unsigned int handle_args(int argc, const char *argv[]) {
 }
 
 int main(int argc, const char *argv[]) {
-  int result = handle_args(argc, argv);
-  
-  if (result == HELP) return SUCCESS;
-  if (result == ERROR) return ERROR;
-  
-  try {
-    std::string selectedLib;
-    
-    if (argc == 1) {
-      std::vector<std::string> gameLibs;
-      std::vector<std::string> graphicalLibs;
-      Arcade::DirectoryScanner::scan("./lib/", gameLibs, graphicalLibs);
-      
-      if (graphicalLibs.empty()) {
-        std::cerr << "Error: No graphical library found in ./lib/" << std::endl;
+  switch (handle_args(argc, argv)) {
+    case HELP:
+      return SUCCESS;
+    case ERROR:
+      return ERROR;
+    default:
+      try {
+        std::string selectedLib;
+
+        if (argc == 1) {
+          std::vector<std::string> gameLibs;
+          std::vector<std::string> graphicalLibs;
+          Arcade::DirectoryScanner::scan("./lib/", gameLibs, graphicalLibs);
+
+          if (graphicalLibs.empty()) {
+            throw Arcade::ARCError("No graphical library found in ./lib/");
+          }
+
+          Arcade::MenuSelector menu;
+          selectedLib = menu.run(graphicalLibs);
+
+          if (selectedLib.empty()) { return SUCCESS; }
+        } else { selectedLib = argv[1]; }
+
+        Arcade::Core core(selectedLib);
+
+        core.run();
+        return SUCCESS;
+      } catch (const Arcade::ARCError &error) {
+        std::cerr << "Error: " << error.what() << std::endl;
+        return ERROR;
+      } catch (const std::exception& e) {
+        std::cerr << "Uncaught Error: " << e.what() << std::endl;
+        return ERROR;
+      } catch (...) {
+        std::cerr << "Uncaught Error." << std::endl;
         return ERROR;
       }
-      
-      Arcade::MenuSelector menu;
-      selectedLib = menu.run(graphicalLibs);
-      
-      if (selectedLib.empty()) {
-        std::cout << "Goodbye!" << std::endl;
-        return SUCCESS;
-      }
-    } else {
-      selectedLib = argv[1];
-    }
-    
-    Arcade::Core core(selectedLib);
-    core.run();
-    return SUCCESS;
-    
-  } catch (const Arcade::ARCError &error) {
-    std::cerr << "Error: " << error.what() << std::endl;
-    return ERROR;
-  } catch (const std::exception &e) {
-    std::cerr << "Error: " << e.what() << std::endl;
-    return ERROR;
-  } catch (...) {
-    std::cerr << "Uncaught Error." << std::endl;
-    return ERROR;
   }
 }

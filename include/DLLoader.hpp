@@ -22,9 +22,8 @@ public:
   }
 
   ~DLLoader() {
-    if (_handle) {
+    if (_handle)
       dlclose(_handle);
-    }
   }
 
   DLLoader(const DLLoader&) = delete;
@@ -38,8 +37,7 @@ public:
     if (this != &other) {
       if (_handle)
         dlclose(_handle);
-      _handle = other._handle;
-      other._handle = nullptr;
+      _handle = other._handle = other._handle = nullptr;
     }
     return *this;
   }
@@ -47,7 +45,7 @@ public:
   bool hasSymbol(const std::string& symbolName) const {
     void* sym = dlsym(_handle, symbolName.c_str());
     if (sym) return true;
-    
+
     std::string macOSName = "_" + symbolName;
     sym = dlsym(_handle, macOSName.c_str());
     return sym != nullptr;
@@ -57,27 +55,24 @@ public:
     dlerror();
 
     void* sym = dlsym(_handle, entryPointName.c_str());
-    
+
     if (!sym) {
       std::string macOSName = "_" + entryPointName;
       sym = dlsym(_handle, macOSName.c_str());
     }
 
     const char *dlsym_error = dlerror();
-    if (dlsym_error) {
+    if (dlsym_error)
       throw ARCError(std::string("dlsym error: ") + dlsym_error);
-    }
 
-    if (!sym) {
+    if (!sym)
       throw ARCError(std::string("cannot find symbol: ") + entryPointName);
-    }
 
     using EntryPointFunc = T* (*)();
     EntryPointFunc createFunc = reinterpret_cast<EntryPointFunc>(sym);
 
-    if (!createFunc) {
+    if (!createFunc)
       throw ARCError(std::string("invalid function pointer for: ") + entryPointName);
-    }
     
     return std::unique_ptr<T>(createFunc());
   }

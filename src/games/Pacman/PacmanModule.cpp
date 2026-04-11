@@ -1,6 +1,7 @@
 #include "IGame.hpp"
 
 #include <algorithm>
+#include <chrono>
 #include <string>
 #include <vector>
 
@@ -34,10 +35,20 @@ public:
         _gameOver = false;
         _playerDirection = Arcade::InputAction::Left;
         _requestedDirection = _playerDirection;
+        _lastStep = std::chrono::steady_clock::now();
         startLevel();
     }
 
     void update() override {
+        if (_gameOver)
+            return;
+
+        auto now = std::chrono::steady_clock::now();
+
+        if (now - _lastStep < kStepDelay)
+            return;
+        _lastStep = now;
+        movePacman();
     }
 
     void onInput(Arcade::InputAction action) override {
@@ -58,24 +69,27 @@ public:
 
         appendText(cells, 0, 0, "Pacman", 4);
         appendText(cells, 0, 1, "Score: " + std::to_string(_score) + "  Level: " + std::to_string(_level), 3);
-        appendText(cells, 0, 2, "Skeleton version", 7);
+        appendText(cells, 0, 2, "Arrows: move | R: restart | M: menu", 7);
 
         for (int y = 0; y < kMapHeight; ++y) {
             for (int x = 0; x < kMapWidth; ++x) {
                 char tile = _map[static_cast<std::size_t>(y)][static_cast<std::size_t>(x)];
+
                 if (tile == '#')
                     cells.push_back(makeCell(x, kTopOffset + y, '#', 5));
                 else if (tile == '.')
                     cells.push_back(makeCell(x, kTopOffset + y, '.', 4));
                 else if (tile == 'o')
                     cells.push_back(makeCell(x, kTopOffset + y, 'o', 2));
+                else
+                    cells.push_back(makeCell(x, kTopOffset + y, ' ', 1));
             }
         }
 
         for (const Ghost &ghost : _ghosts)
             cells.push_back(makeCell(ghost.pos.x, kTopOffset + ghost.pos.y, 'G', 2));
 
-        cells.push_back(makeCell(_pacman.x, kTopOffset + _pacman.y, 'C', 4));
+        cells.push_back(makeCell(_pacman.x, kTopOffset + _pacman.y, 'C', 6));
 
         if (_gameOver)
             appendText(cells, 4, kTopOffset + kMapHeight / 2, "Game Over - press r to restart", 2);
@@ -95,6 +109,7 @@ private:
     static constexpr int kMapWidth = 19;
     static constexpr int kMapHeight = 11;
     static constexpr int kTopOffset = 4;
+    static constexpr auto kStepDelay = std::chrono::milliseconds(160);
 
     std::vector<std::string> _map;
     GridPos _pacman{};
@@ -106,6 +121,7 @@ private:
     int _level{1};
     int _pelletsLeft{0};
     bool _gameOver{false};
+    std::chrono::steady_clock::time_point _lastStep{};
 
     static Arcade::Cell makeCell(int x, int y, char character, int color) {
         return Arcade::Cell{static_cast<float>(x), static_cast<float>(y), character, color};
@@ -154,6 +170,54 @@ private:
             Ghost{{10, 5}, {10, 5}, Arcade::InputAction::Up}
         };
         _pelletsLeft = countPellets();
+    }
+
+    bool isWalkable(const GridPos &pos) const {
+        if (pos.y < 0 || pos.y >= kMapHeight || pos.x < 0 || pos.x >= kMapWidth)
+            return false;
+        return _map[static_cast<std::size_t>(pos.y)][static_cast<std::size_t>(pos.x)] != '#';
+    }
+
+    GridPos nextPosition(const GridPos &from, Arcade::InputAction direction) const {
+        GridPos next = from;
+
+        if (direction == Arcade::InputAction::Up)
+            --next.y;
+        else if (direction == Arcade::InputAction::Down)
+            ++next.y;
+        else if (direction == Arcade::InputAction::Left)
+            --next.x;
+        else if (direction == Arcade::InputAction::Right)
+            ++next.x;
+        return next;
+    }
+
+    void consumeTile() {
+        char &tile = _map[static_cast<std::size_t>(_pacman.y)][static_cast<std::size_t>(_pacman.x)];
+
+        if (tile == '.') {
+            tile = ' ';
+            _score += 10;
+            --_pelletsLeft;
+        } else if (tile == 'o') {
+            tile = ' ';
+            _score += 50;
+            --_pelletsLeft;
+        }
+    }
+
+    void movePacman() {
+        GridPos requested = nextPosition(_pacman, _requestedDirection);
+
+        if (isWalkable(requested))
+            _playerDirection = _requestedDirection;
+
+        GridPos next = nextPosition(_pacman, _playerDirection);
+
+        if (!isWalkable(next))
+            return;
+        _pacman = next;
+        consumeTile();
     }
 };
 }

@@ -51,7 +51,12 @@ public:
             return;
         _lastStep = now;
         movePacman();
+        resolveCollisions();
+
+        if (_gameOver)
+            return;
         moveGhosts();
+        resolveCollisions();
 
         if (_frightenedSteps > 0)
             --_frightenedSteps;
@@ -321,6 +326,21 @@ private:
 
             if (isWalkable(next))
                 ghost.pos = next;
+        }
+    }
+
+    void resolveCollisions() {
+        for (Ghost &ghost : _ghosts) {
+            if (!(ghost.pos == _pacman))
+                continue;
+            if (_frightenedSteps > 0) {
+                _score += 200;
+                ghost.pos = ghost.start;
+                ghost.direction = Arcade::InputAction::Left;
+            } else {
+                _gameOver = true;
+                return;
+            }
         }
     }
 };

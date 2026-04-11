@@ -76,7 +76,7 @@ void MenuSelector::displayMenu(const std::vector<MenuOption>& options, int selec
   std::cout << "  ║                                      ║\n";
 
   if (selectedIdx == static_cast<int>(options.size())) {
-    std::cout << "  ║  \033[7m  ►  Quitter\033[0m                         ║\n";
+    std::cout << "  ║  \033[7m  ►  Quitter\033[0m                        ║\n";
   } else {
     std::cout << "  ║    ►  Quitter                        ║\n";
   }

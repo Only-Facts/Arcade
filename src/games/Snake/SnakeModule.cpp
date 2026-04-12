@@ -1,6 +1,7 @@
 #include "IGame.hpp"
 
 #include <chrono>
+#include <cstdint>
 #include <deque>
 #include <random>
 #include <string>
@@ -83,35 +84,35 @@ public:
     {
         std::vector<Arcade::Cell> cells;
 
-        appendText(cells, 0, 0, "Snake", 4);
-        appendText(cells, 0, 1, "Score: " + std::to_string(_score), 3);
-        appendText(cells, 0, 2, "Length: " + std::to_string(_snake.size()), 6);
-        appendText(cells, 0, 3, _gameOver ? "Game Over - press R to restart" : "Arrows: move | R: restart | M: menu", 7);
+        appendText(cells, 0, 0, "Snake", 0, 4);
+        appendText(cells, 0, 1, "Score: " + std::to_string(_score), 0, 3);
+        appendText(cells, 0, 2, "Length: " + std::to_string(_snake.size()), 0, 6);
+        appendText(cells, 0, 3, _gameOver ? "Game Over - press R to restart" : "Arrows: move | R: restart | M: menu", 0, 7);
 
         for (int x = 0; x < kBoardWidth; ++x) {
-            cells.push_back(makeCell(x, kTopOffset, '#', 5));
-            cells.push_back(makeCell(x, kTopOffset + kBoardHeight - 1, '#', 5));
+            cells.push_back(makeCell(x, kTopOffset, '#', 0, 5));
+            cells.push_back(makeCell(x, kTopOffset + kBoardHeight - 1, '#', 0, 5));
         }
         for (int y = 1; y < kBoardHeight - 1; ++y) {
-            cells.push_back(makeCell(0, kTopOffset + y, '#', 5));
-            cells.push_back(makeCell(kBoardWidth - 1, kTopOffset + y, '#', 5));
+            cells.push_back(makeCell(0, kTopOffset + y, '#', 0, 5));
+            cells.push_back(makeCell(kBoardWidth - 1, kTopOffset + y, '#', 0, 5));
         }
 
         for (int y = 1; y < kBoardHeight - 1; ++y) {
             for (int x = 1; x < kBoardWidth - 1; ++x) {
-                cells.push_back(makeCell(x, kTopOffset + y, '.', 1));
+                cells.push_back(makeCell(x, kTopOffset + y, ' ', 0, 1));
             }
         }
 
-        cells.push_back(makeCell(_food.x, kTopOffset + _food.y, '$', 4));
+        cells.push_back(makeCell(_food.x, kTopOffset + _food.y, '$', 0, 4));
 
         for (std::size_t i = 0; i < _snake.size(); ++i) {
             const GridPos &part = _snake[i];
-            cells.push_back(makeCell(part.x, kTopOffset + part.y, i == 0 ? 'O' : 'o', i == 0 ? 2 : 3));
+            cells.push_back(makeCell(part.x, kTopOffset + part.y, i == 0 ? 'O' : 'o', 0, i == 0 ? 2 : 3));
         }
 
         if (_gameOver) {
-            appendText(cells, 6, kTopOffset + kBoardHeight / 2, "GAME OVER", 4);
+            appendText(cells, 6, kTopOffset + kBoardHeight / 2, "GAME OVER", 0, 4);
         }
 
         return cells;
@@ -140,13 +141,13 @@ private:
     std::chrono::steady_clock::time_point _lastStep{};
     mutable std::mt19937 _rng;
 
-    static Arcade::Cell makeCell(int x, int y, char character, int color) {
-        return Arcade::Cell{static_cast<float>(x), static_cast<float>(y), character, color};
+    static Arcade::Cell makeCell(int x, int y, char character, std::uint8_t color, std::uint8_t textColor) {
+        return Arcade::Cell{static_cast<float>(x), static_cast<float>(y), character, color, textColor};
     }
 
-    static void appendText(std::vector<Arcade::Cell> &cells, int x, int y, const std::string &text, int color) {
+    static void appendText(std::vector<Arcade::Cell> &cells, int x, int y, const std::string &text, std::uint8_t color, std::uint8_t text_color) {
         for (std::size_t i = 0; i < text.size(); ++i) {
-            cells.push_back(makeCell(x + static_cast<int>(i), y, text[i], color));
+            cells.push_back(makeCell(x + static_cast<int>(i), y, text[i], color, text_color));
         }
     }
 

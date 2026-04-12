@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <array>
 #include <chrono>
+#include <cstdint>
 #include <cstdlib>
 #include <string>
 #include <vector>
@@ -90,19 +91,19 @@ public:
         std::vector<Arcade::Cell> cells;
         cells.reserve(static_cast<std::size_t>(kMapWidth * kMapHeight + 200));
 
-        appendText(cells, 0, 0, "Pacman", 4);
-        appendText(cells, 0, 1, "Score: " + std::to_string(_score) + "  Level: " + std::to_string(_level), 3);
-        appendText(cells, 0, 2, isFrightened() ? "Power mode active" : "Arrows move | m menu | r restart", 7);
+        appendText(cells, 0, 0, "Pacman", 0, 4);
+        appendText(cells, 0, 1, "Score: " + std::to_string(_score) + "  Level: " + std::to_string(_level), 0, 3);
+        appendText(cells, 0, 2, isFrightened() ? "Power mode active" : "Arrows move | m menu | r restart", 0, 7);
 
         for (int y = 0; y < kMapHeight; ++y) {
             for (int x = 0; x < kMapWidth; ++x) {
                 char tile = _map[static_cast<std::size_t>(y)][static_cast<std::size_t>(x)];
                 if (tile == '#')
-                    cells.push_back(makeCell(x, kTopOffset + y, '#', 5));
+                    cells.push_back(makeCell(x, kTopOffset + y, '#', 0, 5));
                 else if (tile == '.')
-                    cells.push_back(makeCell(x, kTopOffset + y, '.', 4));
+                    cells.push_back(makeCell(x, kTopOffset + y, '.', 0, 4));
                 else if (tile == 'o')
-                    cells.push_back(makeCell(x, kTopOffset + y, 'o', 2));
+                    cells.push_back(makeCell(x, kTopOffset + y, 'o', 0, 2));
             }
         }
 
@@ -110,12 +111,12 @@ public:
         for (const Ghost &ghost : _ghosts) {
             if (now < ghost.releaseAt)
                 continue;
-            cells.push_back(makeCell(ghost.pos.x, kTopOffset + ghost.pos.y, isFrightened() ? 'g' : 'G', isFrightened() ? 6 : 2));
+            cells.push_back(makeCell(ghost.pos.x, kTopOffset + ghost.pos.y, isFrightened() ? 'g' : 'G', 0, isFrightened() ? 6 : 2));
         }
-        cells.push_back(makeCell(_pacman.x, kTopOffset + _pacman.y, 'C', 4));
+        cells.push_back(makeCell(_pacman.x, kTopOffset + _pacman.y, 'C', 0, 4));
 
         if (_gameOver)
-            appendText(cells, 4, kTopOffset + kMapHeight / 2, "Game Over - press r to restart", 2);
+            appendText(cells, 4, kTopOffset + kMapHeight / 2, "Game Over - press r to restart", 0, 2);
 
         return cells;
     }
@@ -147,13 +148,13 @@ private:
     Clock::time_point _lastPlayerStep{};
     Clock::time_point _lastGhostStep{};
 
-    static Arcade::Cell makeCell(int x, int y, char character, int color) {
-        return Arcade::Cell{static_cast<float>(x), static_cast<float>(y), character, color};
+    static Arcade::Cell makeCell(int x, int y, char character, std::uint8_t color, std::uint8_t textColor) {
+        return Arcade::Cell{static_cast<float>(x), static_cast<float>(y), character, color, textColor};
     }
 
-    static void appendText(std::vector<Arcade::Cell> &cells, int x, int y, const std::string &text, int color) {
+    static void appendText(std::vector<Arcade::Cell> &cells, int x, int y, const std::string &text, std::uint8_t color, std::uint8_t textColor) {
         for (std::size_t i = 0; i < text.size(); ++i)
-            cells.push_back(makeCell(x + static_cast<int>(i), y, text[i], color));
+            cells.push_back(makeCell(x + static_cast<int>(i), y, text[i], color, textColor));
     }
 
     static std::vector<std::string> baseMap() {

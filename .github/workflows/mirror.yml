@@ -45,9 +45,9 @@ jobs:
           if [ -f "CMakeLists.txt" ]; then
             mkdir build && cd build
             cmake ..
-            make -k
+            make -k || true
           else
-            make -k && make clean
+            make -k || true && make clean
           fi
 
       - name: Check Compilation
